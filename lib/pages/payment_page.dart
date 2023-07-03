@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pay/pay.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'dart:developer';
 
 import 'package:smart_park/pages/payment_successfull.dart';
@@ -14,14 +15,38 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   final paymentItem = <PaymentItem>[];
+
+  var _razorpay = Razorpay();
   @override
   void initState() {
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     paymentItem.add(const PaymentItem(
       amount: "42",
       label: "Charge",
       status: PaymentItemStatus.final_price,
     ));
     super.initState();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    // Do something when payment succeeds
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    // Do something when payment fails
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    // Do something when an external wallet is selected
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _razorpay.clear(); // Removes all listeners
+    super.dispose();
   }
 
   @override
@@ -110,12 +135,12 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                 ),
               ),
-              Card(
+              const Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(10.0),
+                  padding: EdgeInsets.all(10.0),
                   child: Column(
                     children: [
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
@@ -134,7 +159,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           )
                         ],
                       ),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
@@ -153,7 +178,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           ),
                         ],
                       ),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
@@ -172,37 +197,10 @@ class _PaymentPageState extends State<PaymentPage> {
                           )
                         ],
                       ),
-                      const Divider(
+                      Divider(
                         thickness: 2,
                       ),
                       Row(
-                        children: [
-                          const Text(
-                            "Insurance",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                "Remove",
-                                style: TextStyle(
-                                  color: Colors.red,
-                                ),
-                              )),
-                          const Text(
-                            "₹ 2",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15),
-                          ),
-                        ],
-                      ),
-                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
@@ -221,10 +219,10 @@ class _PaymentPageState extends State<PaymentPage> {
                           )
                         ],
                       ),
-                      const Divider(
+                      Divider(
                         thickness: 2,
                       ),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
@@ -235,7 +233,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                 fontSize: 25),
                           ),
                           Text(
-                            "₹ 42",
+                            "₹ 40",
                             style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -289,15 +287,49 @@ class _PaymentPageState extends State<PaymentPage> {
                             hintText: "Enter your UPI"),
                       ),
                     ),
-                    Align(
+                    const Align(
                         alignment: Alignment.topLeft,
                         child: Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: EdgeInsets.all(10.0),
                           child: Text(
                             "Debit/Credit Cards",
                             style: TextStyle(fontSize: 15),
                           ),
                         )),
+
+                    //***********Pay with Razor Pay *******************/
+
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MaterialButton(
+                        onPressed: () {
+                          var options = {
+                            'key': 'rzp_test_fTnbgugypdAT3m',
+                            'amount':
+                                40000, //in the smallest currency sub-unit.
+                            'name': 'Park Smart',
+                            'order_id':
+                                'order_EMBFqjDHEEn80l', // Generate order_id using Orders API
+                            'description': 'Parking charge',
+                            'timeout': 300, // in seconds
+                            'prefill': {
+                              'contact': '9123456789',
+                              'email': 'gaurav.kumar@example.com'
+                            }
+                          };
+                          _razorpay.open(options);
+                        },
+                        color: Colors.black,
+                        height: 40,
+                        minWidth: double.infinity,
+                        child: const Text(
+                          "Pay With Razor Pay",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+
+                    //********Google Pay ************** */
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: GooglePayButton(
